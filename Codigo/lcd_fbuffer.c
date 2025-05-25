@@ -281,7 +281,7 @@ void lcd_fbuffer_linea_v(uint8_t *buffer, uint16_t posicion_eje_x, uint16_t line
     }
 }
 /*
-Función para dibujar una línea vertical en la pantalla.
+Función para escribir a 1 o a 0 todo el array que contiene la imagen.
 Parámetros.
 buffer: buffer en RAM que vamos a modificar.
 color: color del pixel (0: blanco, 1: negro)
