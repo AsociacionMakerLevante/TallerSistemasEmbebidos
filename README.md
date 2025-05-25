@@ -15,7 +15,7 @@ Objetivos del taller:
 
 Lugar del taller: Biblioteca Pública Azorín Alicante. Abierto a quien quiera participar.
 
-Más información en: asociacionmakerlevante@gmail.com
+Más información en: asociacionmakerlevante@gmail.com o en el canal de Telegram: t.me/makersalicante
 
 <img src="https://github.com/AsociacionMakerLevante/TallerSistemasEmbebidos/blob/main/Imagenes/LCD1.jpg" width="750">
 
