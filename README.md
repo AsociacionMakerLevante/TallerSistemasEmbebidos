@@ -9,6 +9,8 @@ Objetivos del taller:
 - Aprender a usar un RTOS como FreeRTOS.
 - Aprender como descomponer una aplicación en distintas tareas del RTOS, cómo diseñar correctamente el software, uso de patrones, queues, mutex, semáforos, etc... (con que funcione no basta!).
 - Aprender a usar el ESP32-C3 utilizando las librerías y el entorno de ESP-IDF (creación de componentes, utilización de componentes ya creados, etc..).
+- Aprender a crear un driver para un IC.
+- Aprender a usar librerías y componentes creados por terceros.
 - Divertirse.
 
 Lugar del taller: Biblioteca Pública Azorín Alicante. Abierto a quien quiera participar.
