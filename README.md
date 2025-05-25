@@ -1,5 +1,5 @@
 # TallerSistemasEmbebidos
-Contenido del Taller Sistemas Embebidos de la Asociación Maker Levante.
+Contenido del taller de sistemas embebidos (o empotrados) de la Asociación Maker Levante.
 
 Objetivos del taller:
 
