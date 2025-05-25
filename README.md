@@ -22,7 +22,6 @@ Más información en: asociacionmakerlevante@gmail.com o en el canal de Telegram
 Placa propuesta para el taller: https://github.com/AsociacionMakerLevante/Prototipo_ESP32-C3-LCD
 
 <img src="https://github.com/AsociacionMakerLevante/TallerSistemasEmbebidos/blob/main/Imagenes/LCD1.jpg" width="750">
-
 <img src="https://github.com/AsociacionMakerLevante/TallerSistemasEmbebidos/blob/main/Imagenes/Batt.jpg" width="750">
 
 
