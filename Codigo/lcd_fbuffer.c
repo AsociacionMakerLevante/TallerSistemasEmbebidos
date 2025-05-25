@@ -56,7 +56,7 @@ void lcd_fbuffer_dibujar_pixel(uint8_t *buffer, uint16_t posicion_eje_x, uint16_
     {
         if(colorpixel)
         {
-            buffer[posicion] &= ~(0x80 >> (posicion_eje_x & 0x07)); //Si es mayor de 8 saltamos de byte en el array
+            buffer[posicion] &= ~(0x80 >> (posicion_eje_x & 0x07)); //Si es mayor de 8 (7 en bin) saltamos de byte en el array
         }
         else
         {
