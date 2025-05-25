@@ -9,7 +9,7 @@ Objetivos del taller:
 - Aprender a usar un RTOS como FreeRTOS.
 - Aprender como descomponer una aplicación en distintas tareas del RTOS, cómo diseñar correctamente el software, uso de patrones, queues, mutexes, semáforos, etc... (solo con que funcione no basta, hay que hacerlo bien!).
 - Aprender a usar el ESP32-C3 utilizando las librerías y el entorno de ESP-IDF (creación de componentes, utilización de componentes ya creados, etc..).
-- Aprender las herramientas de debug.
+- Aprender a usar las herramientas de debug para microcontroladores.
 - Aprender a crear un driver para un IC desde su datasheet.
 - Aprender a usar librerías y componentes creados por terceros.
 - Divertirse.
