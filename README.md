@@ -5,7 +5,7 @@ Objetivos del taller:
 
 - Aprender nociones básicas de hardware y electrónica para proyectos con microcontroladores.
 - Aprender el uso de git en un proyecto colaborativo.
-- Aprender a un nivel aceptable el uso del lenguaje C enfocado a microcontroladores (por facilidad para todos los participants no usaremos C++).
+- Aprender a un nivel aceptable el uso del lenguaje C enfocado a microcontroladores (por facilidad para todos los participantes no usaremos C++ en el código que hagamos).
 - Aprender a usar un RTOS como FreeRTOS.
 - Aprender como descomponer una aplicación en distintas tareas del RTOS, cómo diseñar correctamente el software, uso de patrones, queues, mutex, semáforos, etc... (con que funcione no basta!).
 - Aprender a usar el ESP32-C3 utilizando las librerías y el entorno de ESP-IDF (creación de componentes, utilización de componentes ya creados, etc..).
