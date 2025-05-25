@@ -15,7 +15,7 @@ Objetivos del taller:
 
 Lugar del taller: Biblioteca Pública Azorín Alicante. 
 
-Actividad abierta a quien quiera participar (en este taller aprenderemos todos de manera conjunta).
+Actividad abierta a quien quiera participar (en este taller no hay un profesor/a, aprenderemos todos/as de manera conjunta).
 
 Más información en: asociacionmakerlevante@gmail.com o en el canal de Telegram: t.me/makersalicante
 
