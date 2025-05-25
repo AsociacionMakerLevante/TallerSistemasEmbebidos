@@ -285,6 +285,8 @@ Función para escribir a 1 o a 0 todo el array que contiene la imagen.
 Parámetros.
 buffer: buffer en RAM que vamos a modificar.
 color: color del pixel (0: blanco, 1: negro)
+
+Por hacer: mirar uso de memset
 */
 void lcd_fbuffer_limpiar(uint8_t *buffer, enum color colorpixel)
 {
