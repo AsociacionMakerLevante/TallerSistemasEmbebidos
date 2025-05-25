@@ -13,7 +13,7 @@ Objetivos del taller:
 - Aprender a usar librerías y componentes creados por terceros.
 - Divertirse.
 
-Lugar del taller: Biblioteca Pública Azorín Alicante. Abierto a quien quiera participar.
+Lugar del taller: Biblioteca Pública Azorín Alicante. Actividad abierta a quien quiera participar.
 
 Más información en: asociacionmakerlevante@gmail.com o en el canal de Telegram: t.me/makersalicante
 
