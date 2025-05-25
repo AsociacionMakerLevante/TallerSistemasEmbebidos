@@ -19,6 +19,8 @@ Actividad abierta a quien quiera participar (en este taller no hay un profesor/a
 
 Más información en: asociacionmakerlevante@gmail.com o en el canal de Telegram: t.me/makersalicante
 
+Placa propuesta para el taller: https://github.com/AsociacionMakerLevante/Prototipo_ESP32-C3-LCD
+
 <img src="https://github.com/AsociacionMakerLevante/TallerSistemasEmbebidos/blob/main/Imagenes/LCD1.jpg" width="750">
 
 
