@@ -15,10 +15,9 @@ Objetivos del taller:
 - Divertirse.
 
 Lugar del taller: Biblioteca Pública Azorín Alicante. 
+Fecha prevista de inicio: septiembre 2025.
 
 Actividad abierta a quien quiera participar (en este taller no hay un profesor/a, aprenderemos todos/as de manera conjunta).
-
-Fecha prevista de inicio: septiembre 2025.
 
 Más información en: asociacionmakerlevante@gmail.com o en el canal de Telegram: t.me/makersalicante
 
