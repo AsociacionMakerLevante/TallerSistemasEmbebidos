@@ -14,7 +14,8 @@ Objetivos del taller:
 - Aprender a usar librerías y componentes creados por terceros.
 - Divertirse.
 
-Lugar del taller: Biblioteca Pública Azorín Alicante. 
+Lugar del taller: Biblioteca Pública Azorín Alicante.
+
 Fecha prevista de inicio: septiembre 2025.
 
 Actividad abierta a quien quiera participar (en este taller no hay un profesor/a, aprenderemos todos/as de manera conjunta).
