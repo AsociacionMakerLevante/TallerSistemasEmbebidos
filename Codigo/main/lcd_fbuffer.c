@@ -56,7 +56,7 @@ void lcd_fbuffer_dibujar_pixel(uint8_t *buffer, uint16_t posicion_eje_x, uint16_
     {
         if(colorpixel)
         {
-            buffer[posicion] &= ~(0x80 >> (posicion_eje_x & 0x07)); //Si es mayor de 8 (7 en bin) saltamos de byte en el array
+            buffer[posicion] &= ~(0x80 >> (posicion_eje_x & 0x07)); //Si es mayor de 8 saltamos de byte en el array
         }
         else
         {
@@ -212,6 +212,8 @@ ancho: ancho del rectángulo.
 alto: alto del rectángulo.
 color: color del pixel (blanco o negro).
 relleno: RELLENO, HUECO.
+
+El rectángulo relleno se puede usar para borrar zonas de la pantallas dandole color blanco o negro.
 */
 void lcd_fbuffer_rectangulo(uint8_t *buffer, uint16_t posicion_eje_x, uint16_t linea, uint16_t ancho, uint16_t alto, enum color colorpixel, enum rellenar relleno)
 {
@@ -281,12 +283,10 @@ void lcd_fbuffer_linea_v(uint8_t *buffer, uint16_t posicion_eje_x, uint16_t line
     }
 }
 /*
-Función para escribir a 1 o a 0 todo el array que contiene la imagen.
+Función para dibujar una línea vertical en la pantalla.
 Parámetros.
 buffer: buffer en RAM que vamos a modificar.
 color: color del pixel (0: blanco, 1: negro)
-
-Por hacer: mirar uso de memset
 */
 void lcd_fbuffer_limpiar(uint8_t *buffer, enum color colorpixel)
 {
