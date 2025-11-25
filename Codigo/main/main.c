@@ -1,8 +1,5 @@
 /*
-Programa para verificar el funcionamiento del hardware.
-Escribe en el LCD por SPI.
-Lee lo integrados del bus I2C. 
-Enciende y apaga los leds, y suena el pulsador al pulsar un botón.
+ Makers levante
 */
 #include <stdio.h>
 #include "driver/gpio.h"
@@ -19,6 +16,6 @@ Enciende y apaga los leds, y suena el pulsador al pulsar un botón.
 void app_main(void)
 {
     gpios_crear_tarea();
-    lcd_crear_tarea_LCD();
+    lcd_main_task_create();
     i2c_crear_tarea_i2c();
 }

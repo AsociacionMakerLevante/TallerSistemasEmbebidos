@@ -1,5 +1,5 @@
 /*
-Funciones para controlar la pantalla LCD
+LCD screen control
 */
 #include <stdio.h>
 #include "driver/gpio.h"
@@ -14,152 +14,109 @@ Funciones para controlar la pantalla LCD
 #include "imagenes.h"
 #include "lcd_fbuffer.h"
 
-#define STACK_SIZE 8048 //Stack de las tareas.
+#define STACK_SIZE 8048 // task stack
 
-enum estadoPIN {OFF, ON}; 
-enum LCD_Comando{VCOM = 0x00, LIMPIAR = 0x04, ESCRIBIR = 0x01};
-
-//Reserva en RAM del stack and task control block (TCB) para las tareas creadas estáticas
-static StackType_t stack_tarea_LCD[STACK_SIZE];
-static StaticTask_t TCB_tarea_LCD;
-//Declaramos los handlers para las tasks estáticas por si queremos suspenderlas desde otras tasks.
-TaskHandle_t xHandle_lcd_crear_tarea = NULL;
-
-//Dispositivo SPI que vamos a controlar.
-spi_device_handle_t spi_device_LCD;
-
-//Función que asignamos a la tarea del LCD.
-static void lcd_LCD(void *pvParameters);
-
-//Función para conmutar LCD EXTCON
-static void lcd_extcon(enum estadoPIN estado);
-
-//Funciones para la transmisión SPI.
-static void lcd_spi_init(void);
-static void lcd_spi_escribir_linea(uint8_t linea, uint8_t *data);
-static void lcd_limpiar_pantalla();
-
-/**************Definición de las funciones ***********************/
-
-//Definición de la función que crea la tarea para controlar el LCD.
-void lcd_crear_tarea_LCD(void)
+enum pin_state
 {
-    xHandle_lcd_crear_tarea = xTaskCreateStatic(
-        &lcd_LCD,              //Función que se asigna a al tarea.
-        "tarea_LCD",           //Nombre que le asignamos a la tarea (debug). 
-        STACK_SIZE,            //Tamaño del stack de la tarea (reservado de manera estática previamente).
-        NULL,                  //Parámetros pasados a la tarea en su creación.
-        tskIDLE_PRIORITY + 2,  //Prioridad de la tarea. 
-        stack_tarea_LCD,       //Array para el stack de la tarea reservado previamente. 
-        &TCB_tarea_LCD);       //Memoria reservada previamente para el TCB (task control block) de la tarea.
-    
-        printf("Tarea para controlar el LCD creada.\n");  
+    OFF,
+    ON
+};
+
+enum lcd_command
+{
+    VCOM = 0x00,
+    CLEAR = 0x04,
+    WRITE = 0x01
+};
+
+// Create stack RAM and task control block (TCB) for static tasks
+static StackType_t lcd_task_stack[STACK_SIZE];
+static StaticTask_t lcd_task_tcb;
+
+// Declare handlers for static tasks in case we want to suspend them from other tasks.
+TaskHandle_t lcdTaskHandle = NULL;
+
+// SPI device handle for lcd
+spi_device_handle_t lcd_spi_handle;
+
+// Function assigned to the LCD task.
+static void lcd_main_task(void *pvParameters);
+
+// Function to toggle LCD EXTCON
+static void lcd_extcon(enum pin_state estado);
+
+// Functions for SPI transmission.
+static void lcd_spi_init(void);
+static void lcd_write_line(uint8_t linea, uint8_t *data);
+static void lcd_clear_screen();
+
+/************************************/
+
+// Creates the task to control the LCD.
+void lcd_main_task_create(void)
+{
+    lcdTaskHandle = xTaskCreateStatic(
+        &lcd_main_task,       // Function assigned to the task.
+        "LCD Main task",      // Name assigned to the task (debug).
+        STACK_SIZE,           // Size of the task stack (statically reserved previously).
+        NULL,                 // Parameters passed to the task at creation.
+        tskIDLE_PRIORITY + 2, // Task priority.
+        lcd_task_stack,       // Array for the task stack reserved previously.
+        &lcd_task_tcb);       // Memory reserved previously for the task control block (TCB) of the task.
+
+    printf("Task to control the LCD created.\n");
 }
 
-//Función que asignamos a la tarea del LCD.
-static void lcd_LCD(void *pvParameters)
+// Function assigned to the LCD task.
+static void lcd_main_task(void *pvParameters)
 {
     TickType_t xLastWakeTime;
-    enum estadoPIN estado = OFF;
+    enum pin_state state = OFF;
 
-    // Inicializa xLastWakeTime con el tiempo actual.
+    // Initialize xLastWakeTime with the current time.
     xLastWakeTime = xTaskGetTickCount();
 
-    //Inicializamos el hardware conectado al LCD.
+    // Initialize the hardware connected to the LCD.
     lcd_spi_init();
-    lcd_limpiar_pantalla();
-/*
-    for(int i = 0; i < FB_SIZE; i++)
+    lcd_clear_screen();
+    lcd_fbuffer_limpiar(DISPLAY_BUFFER1, WHITE);
+
+    while (1)
     {
-        FRAME_BUFFER[i] = 0xFF;
-    }
-    for(int i = 0; i < FB_SIZE; i++)
-    {
-        BUFFER_PANTALLA1[i] = 0xFF;
-    }
-*/
-    lcd_fbuffer_limpiar(BUFFER_PANTALLA1, BLANCO);
-    lcd_limpiar_pantalla();
-/*
-    //lcd_fbuffer_texto(BUFFER_PANTALLA1, 0, 0, 16, 32, " Proyecto de electronica");
-    //lcd_fbuffer_texto(BUFFER_PANTALLA1, 130, 33, 16, 32, "en 2025");
+        // Toggle EXTCON
+        state = !state;
+        lcd_extcon(state);
 
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 0, 0, 16, 32, "  Probando KiCad y el");
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 125, 33, 16, 32, "ESP32-C3.");
+        // Write buffer to LCD line by line. 2Hz refresh rate is OK for now
+        for (int i = 0, j = 0; i < 240; i++)
+        {
+            lcd_write_line(i, &DISPLAY_BUFFER1[j]);
+            j = j + 50;
+        }
 
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 0, 75, 8, 16, "  COMO HACER UN PROYECTO DE ELECTRONICA EN 2025.");
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 10, 210, 8, 16, "jmnelectronics.com");
-
-//lcd_fbuffer_imagen(BUFFER_PANTALLA1, 170, 156, 240, 84, imagen_4);
-    lcd_fbuffer_imagen(BUFFER_PANTALLA1, 10, 105, 184, 73, imagen_5);
-    lcd_fbuffer_imagen(BUFFER_PANTALLA1, 225, 100, 144, 127, imagen_6);
-*/
-    
-
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 0, 0, 16, 32, "Libreria para el LCD v0.1");
-
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 10, 100, 8, 8, "Linea Horizontal");
-    lcd_fbuffer_linea_h(BUFFER_PANTALLA1, 10, 125, 40, NEGRO);
-
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 200, 100, 8, 8, "Linea Vertical");
-    lcd_fbuffer_linea_v(BUFFER_PANTALLA1, 330, 80, 40, NEGRO);
-
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 10, 35, 8, 8, "Rectangulo Hueco");
-    lcd_fbuffer_rectangulo(BUFFER_PANTALLA1, 10, 50, 50, 30, NEGRO, HUECO);
-
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 200, 35, 8, 8, "Rectangulo Relleno");
-    lcd_fbuffer_rectangulo(BUFFER_PANTALLA1, 200, 50, 50, 30, NEGRO, RELLENO);
-
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 10, 150, 8, 16, "Imagen");
-    lcd_fbuffer_imagen(BUFFER_PANTALLA1, 68, 150, 80, 80, imagen_2);
-
-    lcd_fbuffer_rectangulo(BUFFER_PANTALLA1, 165, 130, 215, 100, NEGRO, HUECO);
-    lcd_fbuffer_rectangulo(BUFFER_PANTALLA1, 167, 132, 211, 96, NEGRO, HUECO);
-    lcd_fbuffer_rectangulo(BUFFER_PANTALLA1, 169, 134, 207, 92, NEGRO, HUECO);
-
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 171, 142, 8, 16, "Taller Sistemas Embebidos");
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 200, 172, 8, 16, "Asociacion Maker");
-    lcd_fbuffer_texto(BUFFER_PANTALLA1, 208, 192, 16, 16, "LEVANTE");
-
-
-
-
-
-    for(int i = 0, j = 0; i < 240; i++)
-    {
-        lcd_spi_escribir_linea(i, &BUFFER_PANTALLA1[j]);
-        j = j + 50;
-    }
-    
-
-    while(1)
-    {
-        //InvertimosEXTCON
-        estado = !estado;
-        lcd_extcon(estado);      
-        //Bloqueamos la tarea durante 500 ms
-        vTaskDelayUntil( &xLastWakeTime, (500 / portTICK_PERIOD_MS) );
+        // Block the task for 500 ms
+        vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
     }
 }
 
-//Funcion para conmutar LCD EXTCON
-static void lcd_extcon(enum estadoPIN estado)
+// Function to toggle LCD EXTCON
+static void lcd_extcon(enum pin_state estado)
 {
     gpio_set_level(LCD_EXTCON, estado);
 }
 
-//Declaración de las funciones para la transmisión SPI.
+// SPI initialization.
 static void lcd_spi_init(void)
 {
-   //Configuramos el pin de LCD EXTCON como salida.
-   gpio_reset_pin(LCD_EXTCON);
-   gpio_set_direction(LCD_EXTCON, GPIO_MODE_OUTPUT);
-   gpio_pullup_dis(LCD_EXTCON);
-   gpio_set_level(LCD_EXTCON, 0);
+    // Configure the LCD EXTCON pin as output.
+    gpio_reset_pin(LCD_EXTCON);
+    gpio_set_direction(LCD_EXTCON, GPIO_MODE_OUTPUT);
+    gpio_pullup_dis(LCD_EXTCON);
+    gpio_set_level(LCD_EXTCON, 0);
 
-    //Inicializar el bus SPI llamando a spi_bus_initialize().
-    //Estructura de inicialización spi_bus_config_t.
-    spi_bus_config_t conf_bus_SPI = {
+    // Initialize the SPI bus by calling spi_bus_initialize().
+    // SPI bus configuration struct.
+    spi_bus_config_t spiBusConfig = {
         .mosi_io_num = SPI_MOSI,
         .miso_io_num = -1,
         .sclk_io_num = SPI_CLK,
@@ -173,96 +130,72 @@ static void lcd_spi_init(void)
         .max_transfer_sz = SOC_SPI_MAXIMUM_BUFFER_SIZE,
         .flags = SPI_DEVICE_POSITIVE_CS,
     };
-    spi_bus_initialize(SPI2_HOST, &conf_bus_SPI, SPI_DMA_DISABLED);
+    spi_bus_initialize(SPI2_HOST, &spiBusConfig, SPI_DMA_DISABLED);
 
-    //Registrar el dispositivo LCD en el bus SPI llamando a spi_bus_add_device();
-    //Estrucutura spi_device_interface_config_t.
-    spi_device_interface_config_t conf_interfaz_SPI =
-    {
-        .command_bits = 8,
-        .address_bits = 8,
-        .dummy_bits = 0,
-        .mode = 0, 
-        .clock_source = SPI_CLK_SRC_DEFAULT,
-        .duty_cycle_pos = 0,
-        .cs_ena_pretrans = 0,
-        .cs_ena_posttrans = 0,
-        .clock_speed_hz = 2000000UL,
-        .input_delay_ns = 0,
-        .spics_io_num = SPI_CS,
-        .flags = (SPI_DEVICE_POSITIVE_CS | SPI_DEVICE_TXBIT_LSBFIRST),
-        .queue_size = 1,
-        //.pre_cb = NULL,
-        //.post_cb = NULL,
-    };
-    spi_bus_add_device(SPI2_HOST, &conf_interfaz_SPI, &spi_device_LCD);
+    // Register the LCD device on the SPI bus by calling spi_bus_add_device();
+    // SPI device interface configuration struct.
+    spi_device_interface_config_t spiDeviceConfig =
+        {
+            .command_bits = 8,
+            .address_bits = 8,
+            .dummy_bits = 0,
+            .mode = 0,
+            .clock_source = SPI_CLK_SRC_DEFAULT,
+            .duty_cycle_pos = 0,
+            .cs_ena_pretrans = 0,
+            .cs_ena_posttrans = 0,
+            .clock_speed_hz = 2000000UL,
+            .input_delay_ns = 0,
+            .spics_io_num = SPI_CS,
+            .flags = (SPI_DEVICE_POSITIVE_CS | SPI_DEVICE_TXBIT_LSBFIRST),
+            .queue_size = 1,
+            //.pre_cb = NULL,
+            //.post_cb = NULL,
+        };
+    spi_bus_add_device(SPI2_HOST, &spiDeviceConfig, &lcd_spi_handle);
 
-    //Ponemos a 1 EXTCOM
+    // Set EXTCOM to 1
     gpio_set_level(LCD_EXTCON, 1);
-    vTaskDelay(10 / portTICK_PERIOD_MS); 
+    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
-//Primera línea del LCD 0x01, rango de 0 a 239
-static void lcd_spi_escribir_linea(uint8_t linea, uint8_t *data)
-{
-    enum LCD_Comando comando = ESCRIBIR;
 
-    //Para interactura con el dispositivo rellenar la estructura spi_transaction_t.
-    //funciones spi_device_queue_trans()  o spi_device_polling_transmit() 
-    //Escribimos una línea. El LCD recibe el LSB primero
+// First line of the LCD 0x01, range from 0 to 239 //TODO Check this
+static void lcd_write_line(uint8_t linea, uint8_t *data)
+{
+    enum lcd_command comando = WRITE;
+
+    // To interact with the device, fill the spi_transaction_t structure.
+    // Use functions spi_device_queue_trans() or spi_device_polling_transmit()
+    // Write a line. The LCD receives the LSB first
     spi_transaction_t spi_envio_LCD =
-    {
-        //.flags = NULL,
-        .cmd = comando,
-        .addr = linea + 1, //Primera línea del LCD 0x01
-        .length = 416,
-        .rxlength = 0,
-        .user = NULL,
-        .tx_buffer = data, //no poner &data, si no el contenido, la dirección a la que apunta data.
-        .rx_buffer = NULL,
-    };
-    spi_device_polling_transmit(spi_device_LCD, &spi_envio_LCD); 
+        {
+            //.flags = NULL,
+            .cmd = comando,
+            .addr = linea + 1, // First line of the LCD 0x01
+            .length = 416,
+            .rxlength = 0,
+            .user = NULL,
+            .tx_buffer = data, // do not use &data, but the content, the address to which data points.
+            .rx_buffer = NULL,
+        };
+    spi_device_polling_transmit(lcd_spi_handle, &spi_envio_LCD);
 }
-static void lcd_limpiar_pantalla()
+static void lcd_clear_screen()
 {
-    //Limpiar pantalla.
+    // Clear screen.
 
-    enum LCD_Comando comando = LIMPIAR ;
+    enum lcd_command comando = CLEAR;
 
     spi_transaction_t spi_envio_LCD_CS =
-    {
-        //.flags = NULL,
-        .cmd = comando,
-        .addr = 0b00000000,
-        .length = 0,
-        .rxlength = 0,
-        .user = NULL,
-        .tx_buffer = NULL,
-        .rx_buffer = NULL,
-    };
-    spi_device_polling_transmit(spi_device_LCD, &spi_envio_LCD_CS);
+        {
+            //.flags = NULL,
+            .cmd = comando,
+            .addr = 0b00000000,
+            .length = 0,
+            .rxlength = 0,
+            .user = NULL,
+            .tx_buffer = NULL,
+            .rx_buffer = NULL,
+        };
+    spi_device_polling_transmit(lcd_spi_handle, &spi_envio_LCD_CS);
 }
-
-    /*
-    for(int i = 0; i < 240; i ++)
-    {
-        if(i == 0)
-        {
-            lcd_fbuffer_dibujar_pixel(BUFFER_PANTALLA1, i, i, 1);
-        }
-        else if(i == 239)
-        {
-            lcd_fbuffer_dibujar_pixel(BUFFER_PANTALLA1, 399, i, 1);
-        }
-        else
-            lcd_fbuffer_dibujar_pixel(BUFFER_PANTALLA1, i+1, i, 1);
-    }
-    */
-
-        //escribir_imagen(0, 0, 400, 240, imagen_1);
-    //lcd_buffer_dibujar_rectangulo(0, 80, 30, 90);
-    //lcd_fbuffer_imagen(BUFFER_PANTALLA1, 0, 0, 400, 240, imagen_1);
-    //lcd_fbuffer_texto(BUFFER_PANTALLA1, 0, 0, 16, 32, "Sofia y Pope");
-    //lcd_fbuffer_rectangulo(BUFFER_PANTALLA1, 10, 120, 10, 10, NEGRO, RELLENO);
-    //lcd_fbuffer_rectangulo(BUFFER_PANTALLA1, 100, 120, 30, 30, NEGRO, HUECO);
-    //lcd_fbuffer_linea_h(BUFFER_PANTALLA1, 10, 130, 30, NEGRO);
-    //lcd_fbuffer_linea_v(BUFFER_PANTALLA1, 10, 131, 30, NEGRO);

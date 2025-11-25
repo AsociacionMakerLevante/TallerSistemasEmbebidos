@@ -1,5 +1,5 @@
 /*
-Basic LCD functions header file.
+Funciones para controlar la pantalla LCD
 */
 #ifndef LCD_H
 #define LCD_H

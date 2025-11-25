@@ -13,7 +13,7 @@ Enlaces relacionados:
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "lcd_fbuffer.h"
+#include "lcd_fbuffer_legacy.h"
 #include "imagenes.h"
 #include "fuentes.h"
 
@@ -215,7 +215,7 @@ relleno: RELLENO, HUECO.
 
 El rectángulo relleno se puede usar para borrar zonas de la pantallas dandole color blanco o negro.
 */
-void lcd_fbuffer_rectangulo(uint8_t *buffer, uint16_t posicion_eje_x, uint16_t linea, uint16_t ancho, uint16_t alto, enum color colorpixel, enum fill_type relleno)
+void lcd_fbuffer_rectangulo(uint8_t *buffer, uint16_t posicion_eje_x, uint16_t linea, uint16_t ancho, uint16_t alto, enum color colorpixel, enum rellenar relleno)
 {
     if (relleno)
     {
