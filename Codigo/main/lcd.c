@@ -9,7 +9,6 @@ LCD screen control
 #include "driver/spi_master.h"
 #include "esp_log.h"
 #include "pinOut.h"
-#include "LS027B7DH01.h"
 #include "fuentes.h"
 #include "imagenes.h"
 #include "lcd_fbuffer.h"
@@ -79,7 +78,7 @@ static void lcd_main_task(void *pvParameters)
     // Initialize the hardware connected to the LCD.
     lcd_spi_init();
     lcd_clear_screen();
-    lcd_fbuffer_limpiar(DISPLAY_BUFFER1, WHITE);
+    lcd_clear(DISPLAY_BUFFER1, WHITE);
 
     while (1)
     {
