@@ -8,8 +8,14 @@ typedef struct
 {
     float temp;
     float humidity;
-} sht_40_data_t;
+} sht40_data_t;
 
-void i2c_main_task_create(sht_40_data_t *sht40_data);
+typedef struct
+{
+    float voltage;
+    uint8_t soc;
+} max17048_data_t;
+
+void i2c_main_task_create(sht40_data_t *sht40_data, max17048_data_t *max17048_data);
 
 #endif

@@ -32,14 +32,17 @@ TaskHandle_t xHandle_i2c_crear_tarea_i2c = NULL;
 // Función asignada a la tarea i2c
 static void tarea_i2c(void *pvParameters);
 
-static sht_40_data_t *sht40Data;
+static sht40_data_t *sht40Data;
+static max17048_data_t *max17048Data;
 
 /************** Definición de las funciones ****************************/
 
 // Función para crear la tarea con la que se pruena el bus i2c
-void i2c_main_task_create(sht_40_data_t *sht40_data)
+void i2c_main_task_create(sht40_data_t *sht40_data, max17048_data_t *max17048_data)
 {
-    sht40Data = sht40_data; // Assign the passed pointer to the global variable
+    // Assign the passed pointers to the global variables
+    sht40Data = sht40_data;
+    max17048Data = max17048_data;
 
     xHandle_i2c_crear_tarea_i2c = xTaskCreateStatic(
         &tarea_i2c,           // Función que se asigna a al tarea.
@@ -104,8 +107,6 @@ static void tarea_i2c(void *pvParameters)
     // Variables para el MAX17048
     uint8_t max_data_wr[1];
     uint8_t max_data_rd[2];
-    float voltaje = 0;
-    uint8_t soc = 0;
 
     // Variables para el MCP7940N
     uint8_t mcp_data_wr[2] = {0, 0};
@@ -141,14 +142,13 @@ static void tarea_i2c(void *pvParameters)
         max_data_wr[0] = MAX17040_SOC; // Registro con el valor del SOC.
         ESP_ERROR_CHECK(i2c_master_transmit_receive(max17048_handle, max_data_wr, sizeof(max_data_wr), max_data_rd, 2, -1));
         // Calculamos el valor del SOC.
-        soc = max_data_rd[0];
-        printf("Lectura MAX17040: Porcentaje de bateria %u %%.\n", soc);
+        max17048Data->soc = max_data_rd[0];
+        printf("Lectura MAX17040: Porcentaje de bateria %u %%.\n", max17048Data->soc);
         max_data_wr[0] = MAX17040_VCELL; // Registro con el valor de Vcell
         ESP_ERROR_CHECK(i2c_master_transmit_receive(max17048_handle, max_data_wr, sizeof(max_data_wr), max_data_rd, 2, -1));
         // Calculamos el valor de Vcell.
-        voltaje = ((max_data_rd[0] * 256L + max_data_rd[1]) * 78.125f) / 1000000;
-        printf("Lectura MAX17040: Voltaje de bateria %.3f V.\n", voltaje);
-// ESP_ERROR_CHECK(i2c_master_transmit_receive(max17048_handle, max_data_wr, sizeof(max_data_wr), max_data_rd, 2, -1));
+        max17048Data->voltage = ((max_data_rd[0] * 256L + max_data_rd[1]) * 78.125f) / 1000000;
+        printf("Lectura MAX17040: Voltaje de bateria %.3f V.\n", max17048Data->voltage);
 
 // Leemos el MCP7940N e imprimimos sus lecturas.
 #ifdef FIJAR_HORA_RTC
@@ -188,7 +188,6 @@ static void tarea_i2c(void *pvParameters)
         mcp_data_wr[1] = year;
         ESP_ERROR_CHECK(i2c_master_transmit(mcp7940n_handle, mcp_data_wr, 2, -1));
         // Escribimos los segundos y habilitamos el oscilador
-        // Deshabilitamos el oscilador
         mcp_data_wr[0] = 0x00; // Escribimos en el registro 0x00
         mcp_data_wr[1] = 0b10000000;
         ESP_ERROR_CHECK(i2c_master_transmit(mcp7940n_handle, mcp_data_wr, 2, -1));

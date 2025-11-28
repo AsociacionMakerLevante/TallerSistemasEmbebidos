@@ -17,7 +17,8 @@
 static uint16_t s_refresh_period = 1000;
 static uint16_t s_counter = 0;
 
-static sht_40_data_t sht40_data = {.temp = 0.0f, .humidity = 0.0f};
+static sht40_data_t sht40_data = {.temp = 0.0f, .humidity = 0.0f};
+static max17048_data_t max17048_data = {.voltage = 0.0f, .soc = 0};
 
 // Function that updates a counter and displays it on the LCD every refresh period.
 void counter_task(void *arg)
@@ -31,8 +32,12 @@ void counter_task(void *arg)
         lcd_draw_text(DISPLAY_BUFFER1, 10, 10, 16, 32, text);
 
         char sht40_text[40];
-        snprintf(sht40_text, sizeof(sht40_text), "T: %.1f C, HR: %.1f%%", sht40_data.temp, sht40_data.humidity);
+        snprintf(sht40_text, sizeof(sht40_text), "T: %.1f C, HR: %.1f%%   ", sht40_data.temp, sht40_data.humidity);
         lcd_draw_text(DISPLAY_BUFFER1, 10, 50, 16, 32, sht40_text);
+
+        char max17048_text[40];
+        snprintf(max17048_text, sizeof(max17048_text), "V: %.3f V, %%: %d%%", max17048_data.voltage, max17048_data.soc);
+        lcd_draw_text(DISPLAY_BUFFER1, 10, 90, 16, 32, max17048_text);
 
         vTaskDelay(s_refresh_period / portTICK_PERIOD_MS);
     }
@@ -47,7 +52,7 @@ void app_main(void)
     lcd_main_task_create();
 
     /* I2C devices (Thermometer, RTC, Battery gauge) init */
-    i2c_main_task_create(&sht40_data);
+    i2c_main_task_create(&sht40_data, &max17048_data);
 
     /* Start Test counter task */
     xTaskCreate(&counter_task, "counter_task", 1024 * 2, NULL, 5, NULL);
