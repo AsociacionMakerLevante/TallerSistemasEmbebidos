@@ -65,12 +65,12 @@ static void tarea_gpios(void *pvParameters)
 
     // Activamos el zumbador al inicio
     gpio_set_level(ZUMBADOR, 1);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     gpio_set_level(ZUMBADOR, 0);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-    gpio_set_level(ZUMBADOR, 1);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-    gpio_set_level(ZUMBADOR, 0);
+    // vTaskDelay(500 / portTICK_PERIOD_MS);
+    // gpio_set_level(ZUMBADOR, 1);
+    // vTaskDelay(500 / portTICK_PERIOD_MS);
+    // gpio_set_level(ZUMBADOR, 0);
     while (1)
     {
         if (gvui8_pulsacion)

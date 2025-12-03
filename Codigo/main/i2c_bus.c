@@ -120,7 +120,7 @@ static void i2c_task(void *pvParameters)
         // SHT40
         data_wr[0] = CMD_SHT40_READ;
         ESP_ERROR_CHECK(i2c_master_transmit(sht40_handle, data_wr, I2C_TX_BYTES, -1));
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(20 / portTICK_PERIOD_MS);
         i2c_master_receive(sht40_handle, data_rd, I2C_RX_BYTES, -1);
         // Temperature and humidity value calculation.
         sht40_temperature = (data_rd[0] * 256L) + data_rd[1];
@@ -158,7 +158,7 @@ static void i2c_task(void *pvParameters)
         bcd_year = mcp_data_rd[6];
 
         // BCD to Decimal conversion
-        mcp7940Data->seconds = (((bcd_seconds >> 4) * 10) + (bcd_seconds & 0x0F));
+        mcp7940Data->seconds = (((bcd_seconds >> 4) * 10) + (bcd_seconds & 0x0F)) - 80;
         mcp7940Data->minutes = ((bcd_minutes >> 4) * 10) + (bcd_minutes & 0x0F);
         mcp7940Data->hours = ((bcd_hours >> 4) * 10) + (bcd_hours & 0x0F);
         mcp7940Data->dayOfWeek = bcd_dayOfWeek & 0x07;
@@ -166,13 +166,13 @@ static void i2c_task(void *pvParameters)
         mcp7940Data->month = ((bcd_month >> 4) * 10) + (bcd_month & 0x0F);
         mcp7940Data->year = ((bcd_year >> 4) * 10) + (bcd_year & 0x0F);
 
-        // printf("READ bcd_year: 0x%02X, bcd_month: 0x%02X, bcd_dayOfMonth: 0x%02X, bcd_dayOfWeek: 0x%02X, bcd_hours: 0x%02X, bcd_minutes: 0x%02X\n",
-        //        bcd_year, bcd_month, bcd_dayOfMonth, bcd_dayOfWeek, bcd_hours, bcd_minutes);
+        printf("READ bcd_year: 0x%02X, bcd_month: 0x%02X, bcd_dayOfMonth: 0x%02X, bcd_dayOfWeek: 0x%02X, bcd_hours: 0x%02X, bcd_minutes: 0x%02X\n, bcd_seconds: 0x%02X",
+               bcd_year, bcd_month, bcd_dayOfMonth, bcd_dayOfWeek, bcd_hours, bcd_minutes, bcd_seconds);
         ESP_LOGI(TAG, " MCP7940N reading: Time %02u:%02u:%02u.\n\n", mcp7940Data->hours, mcp7940Data->minutes, mcp7940Data->seconds);
         ESP_LOGI(TAG, "MCP7940N Reading: Date %02u/%02u/%02u.\n", mcp7940Data->dayOfMonth, mcp7940Data->month, mcp7940Data->year);
 
-        // Blocking delay of 30 seconds before next reading
-        vTaskDelay(30000 / portTICK_PERIOD_MS);
+        // Blocking delay unitil next minute start
+        vTaskDelay((60000 - (mcp7940Data->seconds * 1000)) / portTICK_PERIOD_MS);
     }
 }
 
