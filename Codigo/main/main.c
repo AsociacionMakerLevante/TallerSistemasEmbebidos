@@ -14,17 +14,33 @@
 #include "lcd_fbuffer.h"
 #include "i2c_bus.h"
 
+static const char *TAG = "main.c";
+
 static uint16_t s_refresh_period = 1000;
 
 static sht40_data_t sht40_data = {.temp = 0.0f, .humidity = 0.0f};
 static max17048_data_t max17048_data = {.voltage = 0.0f, .soc = 0};
 static mcp7940_data_t mcp7940_data = {.seconds = 0, .minutes = 0, .hours = 0, .dayOfWeek = 0, .dayOfMonth = 0, .month = 0, .year = 0};
 
+volatile uint8_t gvui8_positive = 0;
+volatile uint8_t gvui8_negative = 0;
+
 // Function that updates the data on display
 void display_task(void *arg)
 {
     while (1)
     {
+        if (gvui8_positive)
+        {
+            ESP_LOGI(TAG, "Positive edge ISR callback called for button %d\n", gvui8_positive);
+            gvui8_positive = 0;
+        }
+        if (gvui8_negative)
+        {
+            ESP_LOGI(TAG, "Negative edge ISR callback called for button %d\n", gvui8_negative);
+            gvui8_negative = 0;
+        }
+
         lcd_draw_text(DISPLAY_BUFFER1, 10, 10, 16, 32, "Makers Levante");
 
         char sht40_text[40];
@@ -47,10 +63,21 @@ void display_task(void *arg)
     }
 }
 
+void pulsador_isr_handler_neg_callback(void *arg)
+{
+    gvui8_negative = (int)arg;
+}
+
+void pulsador_isr_handler_pos_callback(void *arg)
+{
+    gvui8_positive = (int)arg;
+}
+
 void app_main(void)
 {
     /* GP IO devices (buttons, buzzer) init */
-    gpios_crear_tarea();
+    // gpios_crear_tarea();
+    init_hardware();
 
     /* Display init */
     lcd_main_task_create();

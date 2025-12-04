@@ -8,6 +8,10 @@ Funciones para el control del LEDs, zumbador y los pulsadores.
 #include "esp_attr.h" //IRAM_ATTR: poner el código de la ISR del botón en RAM en lugar de FLASH.
 #include "pinOut.h"
 #include "gpios.h"
+#include "main.h"
+#include "esp_log.h"
+
+static const char *TAG = "gpios.c";
 
 #define ESP_INTR_FLAG_DEFAULT 0
 #define STACK_SIZE 2048 // Stack de las tareas.
@@ -32,7 +36,7 @@ volatile uint32_t gvui32_contadorISR = 0;
 static void tarea_gpios(void *pvParameters);
 
 // Declaración de función para inicializar el hardware de los LEDs y pulsadores.
-static void init_hardware(void);
+void init_hardware();
 
 // Declaración de la función para crear la tarea que llamaremos desde main.c
 void gpios_crear_tarea();
@@ -91,7 +95,7 @@ static void tarea_gpios(void *pvParameters)
 }
 
 // Definición de función para inicializar el hardware de los LEDs y pulsadores.
-static void init_hardware(void)
+void init_hardware()
 {
     // Configuramos el pin del led rojo como salida.
     gpio_reset_pin(LED_ROJO);
@@ -116,11 +120,23 @@ static void init_hardware(void)
     // Deshabilitamos la resistencia de pull-up del pulsador y usamos una externa.
     gpio_pullup_dis(PB_A);
     // Configurar la interrupción del pulsador.
-    gpio_set_intr_type(PB_A, GPIO_INTR_NEGEDGE);
+    gpio_set_intr_type(PB_A, GPIO_INTR_POSEDGE);
     // Instala el driver's GPIO ISR handler service.
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     // Asignar la función a la que se llamará cuando ocurra la ISR del pulsador.
-    gpio_isr_handler_add(PB_A, pulsador_isr_handler, NULL);
+    gpio_isr_handler_add(PB_A, pulsador_isr_handler_pos_callback, (void *)1);
+
+    // Configuramos el pin del pulsador como entrada.
+    // gpio_reset_pin(PB_A);
+    // gpio_set_direction(PB_A, GPIO_MODE_INPUT);
+    // Deshabilitamos la resistencia de pull-up del pulsador y usamos una externa.
+    // gpio_pullup_dis(PB_A);
+    // Configurar la interrupción del pulsador.
+    gpio_set_intr_type(PB_A, GPIO_INTR_NEGEDGE);
+    // Instala el driver's GPIO ISR handler service.
+    // gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+    // Asignar la función a la que se llamará cuando ocurra la ISR del pulsador.
+    gpio_isr_handler_add(PB_A, pulsador_isr_handler_neg_callback, (void *)1);
 
     // Configuramos el pin del pulsador como entrada.
     gpio_reset_pin(PB_B);
@@ -132,7 +148,7 @@ static void init_hardware(void)
     // Instala el driver's GPIO ISR handler service.
     // gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     // Asignar la función a la que se llamará cuando ocurra la ISR del pulsador.
-    gpio_isr_handler_add(PB_B, pulsador_isr_handler, NULL);
+    gpio_isr_handler_add(PB_B, pulsador_isr_handler_neg_callback, (void *)2);
 
     // Configuramos el pin del pulsador como entrada.
     gpio_reset_pin(PB_C);
@@ -144,13 +160,14 @@ static void init_hardware(void)
     // Instala el driver's GPIO ISR handler service.
     // gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     // Asignar la función a la que se llamará cuando ocurra la ISR del pulsador.
-    gpio_isr_handler_add(PB_C, pulsador_isr_handler, NULL);
+    gpio_isr_handler_add(PB_C, pulsador_isr_handler_neg_callback, (void *)3);
 }
 
 // Función que llamamos cuando ocurra la ISR del pulsador. RAM_ATTR: En RAM se ejecuta más rápido.
 // static void IRAM_ATTR pulsador_isr_handler(void *arg)
 static void pulsador_isr_handler(void *arg)
 {
-    gvui8_pulsacion = 1;
-    gvui32_contadorISR++;
+    // gvui8_pulsacion = 1;
+    // gvui32_contadorISR++;
+    // ESP_LOGI(TAG, "Negative edge ISR callback called for button %d\n", (int)arg);
 }
