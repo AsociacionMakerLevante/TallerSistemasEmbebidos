@@ -1,0 +1,20 @@
+# Target: ESP32-C3
+CONFIG_IDF_TARGET="esp32c3"
+
+# CPU frequency
+CONFIG_ESP32C3_DEFAULT_CPU_FREQ_MHZ=160
+
+# FreeRTOS tick rate (1 kHz para mayor resolución temporal)
+CONFIG_FREERTOS_HZ=1000
+
+# Stack de tareas (para debugging con JTAG)
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=4096
+
+# Log level
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+
+# Consola por USB-JTAG (para ver logs sin UART externo)
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# Fuente grande para el display
+CONFIG_LV_FONT_MONTSERRAT_28=y

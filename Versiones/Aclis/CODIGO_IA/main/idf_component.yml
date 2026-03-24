@@ -1,0 +1,9 @@
+## IDF Component Manager – dependencias del componente main
+dependencies:
+  ## Versión mínima de ESP-IDF
+  idf:
+    version: ">=5.0.0"
+
+  ## LVGL 9.x desde el registro oficial de componentes
+  lvgl/lvgl:
+    version: ">=9.0.0,<10.0.0"
